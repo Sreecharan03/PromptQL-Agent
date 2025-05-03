@@ -1,52 +1,109 @@
+# my_agent/agent.py
+'''
+from typing import TypedDict, Literal
+from langgraph.graph import StateGraph, END
+from my_agent.utils.nodes import (
+    planner_agent,
+    sql_agent,
+    explainer_agent,
+    decide_next_step
+)
+from my_agent.utils.state import AgentState
+
+class GraphConfig(TypedDict):
+    model_name: Literal["azure_openai"]
+
+workflow = StateGraph(AgentState, config_schema=GraphConfig)
+
+# Register the three agents
+workflow.add_node("planner", planner_agent)
+workflow.add_node("sql_agent", sql_agent)
+workflow.add_node("explainer", explainer_agent)
+
+# Start here
+workflow.set_entry_point("planner")
+
+# Route based on planner's exact token
+workflow.add_conditional_edges(
+    "planner",
+    decide_next_step,
+    {
+        "to_sql": "sql_agent",
+        "to_explainer": "explainer",
+        "end": END
+    }
+)
+
+# No add_edge calls—after each chosen node, graph will end automatically
+
+graph = workflow.compile()
+
+# (Optional) LangSmith tracing
+from langchain_core.tracers.langchain import LangChainTracer
+import os
+tracer = LangChainTracer(project_name=os.getenv("LANGCHAIN_PROJECT", "langgraph-azure-gpt4o"))
+graph = graph.with_config({"callbacks": [tracer]})
+from my_agent.utils.db import init_database
+init_database()'''
+
+# my_agent/agent.py
+
+# my_agent/agent.py
+
+# my_agent/agent.py
+
+# my_agent/agent.py
+
+import os
 from typing import TypedDict, Literal
 
 from langgraph.graph import StateGraph, END
-from my_agent.utils.nodes import call_model, should_continue, tool_node
+from langchain_core.tracers.langchain import LangChainTracer as LangSmithTracer
+
+import my_agent.utils.nodes as nodes
+from my_agent.utils.nodes import (
+    planner_agent,
+    sql_agent,
+    explainer_agent,
+    visualize_agent,
+    decide_next_step
+)
 from my_agent.utils.state import AgentState
 
-
-# Define the config
 class GraphConfig(TypedDict):
-    model_name: Literal["anthropic", "openai"]
+    model_name: Literal["azure_openai"]
 
+# 1) LangSmith tracer
+tracer = LangSmithTracer(project_name=os.getenv("LANGCHAIN_PROJECT", "langgraph-azure-gpt4o"))
 
-# Define a new graph
+# 2) Build workflow
 workflow = StateGraph(AgentState, config_schema=GraphConfig)
+workflow.add_node("planner",    planner_agent)
+workflow.add_node("sql_agent",  sql_agent)
+workflow.add_node("explainer",  explainer_agent)
+workflow.add_node("visualizer", visualize_agent)
+workflow.set_entry_point("planner")
 
-# Define the two nodes we will cycle between
-workflow.add_node("agent", call_model)
-workflow.add_node("action", tool_node)
-
-# Set the entrypoint as `agent`
-# This means that this node is the first one called
-workflow.set_entry_point("agent")
-
-# We now add a conditional edge
 workflow.add_conditional_edges(
-    # First, we define the start node. We use `agent`.
-    # This means these are the edges taken after the `agent` node is called.
-    "agent",
-    # Next, we pass in the function that will determine which node is called next.
-    should_continue,
-    # Finally we pass in a mapping.
-    # The keys are strings, and the values are other nodes.
-    # END is a special node marking that the graph should finish.
-    # What will happen is we will call `should_continue`, and then the output of that
-    # will be matched against the keys in this mapping.
-    # Based on which one it matches, that node will then be called.
+    "planner",
+    decide_next_step,
     {
-        # If `tools`, then we call the tool node.
-        "continue": "action",
-        # Otherwise we finish.
-        "end": END,
-    },
+        "sql_agent":   "sql_agent",
+        "explainer":   "explainer",
+        "visualizer":  "visualizer",
+        "end":         END
+    }
 )
 
-# We now add a normal edge from `tools` to `agent`.
-# This means that after `tools` is called, `agent` node is called next.
-workflow.add_edge("action", "agent")
+# chain SQL→visualize
+workflow.add_edge("sql_agent", "visualizer")
 
-# Finally, we compile it!
-# This compiles it into a LangChain Runnable,
-# meaning you can use it as you would any other runnable
-graph = workflow.compile()
+# 3) compile with tracer
+graph = workflow.compile().with_config({"callbacks": [tracer]})
+
+# 4) wire tracer into visualize_agent
+nodes.tracer = tracer
+
+# 5) initialize DB
+from my_agent.utils.db import init_database
+init_database()
