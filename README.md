@@ -1,18 +1,130 @@
-<<<<<<< HEAD
-# LangGraph Cloud Example
+# 🧠 PromptQL-Agent
 
-![](static/agent_ui.png)
+**Conversational SQL Assistant powered by LangGraph, Azure OpenAI, and Streamlit**
 
-This is an example agent to deploy with LangGraph Cloud.
+PromptQL-Agent is an agentic AI system that transforms natural language queries into SQL, executes them on your database, and returns both tabular and visual insights — all inside a Streamlit interface.
 
-> [!TIP]
-> If you would rather use `pyproject.toml` for managing dependencies in your LangGraph Cloud project, please check out [this repository](https://github.com/langchain-ai/langgraph-example-pyproject).
+---
 
-[LangGraph](https://github.com/langchain-ai/langgraph) is a library for building stateful, multi-actor applications with LLMs. The main use cases for LangGraph are conversational agents, and long-running, multi-step LLM applications or any LLM application that would benefit from built-in support for persistent checkpoints, cycles and human-in-the-loop interactions (ie. LLM and human collaboration).
+## 🚀 Key Features
 
-LangGraph shortens the time-to-market for developers using LangGraph, with a one-liner command to start a production-ready HTTP microservice for your LangGraph applications, with built-in persistence. This lets you focus on the logic of your LangGraph graph, and leave the scaling and API design to us. The API is inspired by the OpenAI assistants API, and is designed to fit in alongside your existing services.
+- 🧩 **LangGraph Agent Flow** for modular, explainable NLP-to-SQL pipelines
+- 💬 **Natural Language → SQL** via Azure OpenAI GPT-4o
+- 🧠 **Schema-aware reasoning** using Azure Cognitive Search or Weaviate
+- 📊 **Auto-generated Charts** with Plotly (bar, pie, timeline, etc.)
+- 🧾 **Summarizer Agent** for human-readable data interpretations
+- 🌐 **Multilingual support** (English, Hindi, Telugu)
+- 🛡️ **Safe SQL mode** with injection protection and fallback handling
 
-In order to deploy this agent to LangGraph Cloud you will want to first fork this repo. After that, you can follow the instructions [here](https://langchain-ai.github.io/langgraph/cloud/) to deploy to LangGraph Cloud.
-=======
-# PromptQL-Agent
->>>>>>> f7ae265e3a2ab59fbca0941f776f146beb1683e7
+---
+
+## 🧱 Project Structure
+
+```
+PromptQL-Agent/
+├── agents/
+│   ├── sql_generator_agent.py
+│   ├── schema_retriever_agent.py
+│   ├── visualizer_agent.py
+│   └── summarizer_agent.py
+├── core/
+│   ├── sql_executor.py
+│   ├── config.py
+│   └── db_connector.py
+├── ui/
+│   └── app.py
+├── .env.example
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## 🔄 Agentic Flow (LangGraph)
+
+```
+[Chat Input]
+    ↓
+[Intention Classifier Agent]
+    ↓
+[SQL Generator Agent] ← Schema Retriever Agent
+    ↓
+[SQL Executor Agent]
+    ↓
+[Plot Generator Agent] → [Summarizer Agent]
+    ↓
+[Streamlit Display]
+```
+
+---
+
+## 🔧 Setup Instructions
+
+```bash
+git clone https://github.com/Sreecharan03/PromptQL-Agent.git
+cd PromptQL-Agent
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # or .\venv\Scripts\activate on Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Add your keys and DB URI to .env
+cp .env.example .env
+```
+
+---
+
+## ▶️ Run the App
+
+```bash
+streamlit run ui/app.py
+```
+
+---
+
+## 📁 .env Configuration (Example)
+
+```env
+AZURE_OPENAI_API_KEY=your_azure_api_key
+AZURE_OPENAI_ENDPOINT=https://your-endpoint.openai.azure.com/
+SQL_DATABASE_URL=postgresql://user:pass@host:port/dbname
+COGNITIVE_SEARCH_KEY=your_search_key
+COGNITIVE_SEARCH_ENDPOINT=https://your-search-endpoint
+```
+
+---
+
+## 🛠️ Tech Stack
+
+| Component       | Tech                          |
+|----------------|-------------------------------|
+| LLM             | Azure OpenAI GPT-4o           |
+| Agent Framework | LangGraph                     |
+| UI              | Streamlit                     |
+| Visuals         | Plotly                        |
+| DB Support      | PostgreSQL, MySQL, MSSQL      |
+| Retrieval       | Azure Cognitive Search / Weaviate |
+
+---
+
+## ✅ TODO / Coming Soon
+
+- Voice-based query input (Hindi, Telugu)
+- Live database schema viewer
+- Save queries as report templates
+- Grafana dashboard integration
+
+---
+
+## 👨‍💻 Author
+
+Built with ❤️ by [@Sreecharan03](https://github.com/Sreecharan03) — AI, Agents, and Analytics Enthusiast.
+
+---
+
+## 🪪 License
+
+This project is licensed under the MIT License.
